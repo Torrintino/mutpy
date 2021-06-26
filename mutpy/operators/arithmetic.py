@@ -14,6 +14,7 @@ class AbstractArithmeticOperatorReplacement(MutationOperator):
 
     def mutate_Add(self, node):
         if self.should_mutate(node):
+            # NOTE: If the mutation is applicable, return a new node with another operator
             return ast.Sub()
         raise MutationResign()
 

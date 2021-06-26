@@ -94,6 +94,7 @@ def get_runner_cls(runner):
 
 
 def build_mutator(cfg):
+    # NOTE: This function is used to build the mutant generator
     operators_set = set()
 
     if cfg.experimental_operators:
@@ -110,6 +111,9 @@ def build_mutator(cfg):
     operators_set -= {get_operator(name, name_to_operator)
                       for name in cfg.disable_operator}
 
+    # NOTE: I will assume for now, that we use the first order mutator
+    #    and no experimental operators (default).
+    #    Maybe we need to use the HOM, as we attempt to make semantic changes
     if cfg.order == 1:
         return controller.FirstOrderMutator(operators_set, cfg.percentage)
     else:

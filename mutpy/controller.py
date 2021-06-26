@@ -51,6 +51,7 @@ class MutationController(views.ViewNotifier):
     def __init__(self, runner_cls, target_loader, test_loader, views, mutant_generator,
                  timeout_factor=5, disable_stdout=False, mutate_covered=False, mutation_number=None):
         super().__init__(views)
+        # The loader comes from utils and is created in commandline
         self.target_loader = target_loader
         self.test_loader = test_loader
         self.mutant_generator = mutant_generator
@@ -60,9 +61,11 @@ class MutationController(views.ViewNotifier):
         self.runner = runner_cls(self.test_loader, self.timeout_factor, self.stdout_manager, mutate_covered)
 
     def run(self):
+        # NOTE: I think these notifiers are used by the notifier and not relevant for us
         self.notify_initialize(self.target_loader.names, self.test_loader.names)
         try:
             timer = utils.Timer()
+            # NOTE: This is the entry point
             self.run_mutation_process()
             self.notify_end(self.score, timer.stop())
         except TestsFailAtOriginal as error:
@@ -74,6 +77,7 @@ class MutationController(views.ViewNotifier):
 
     def run_mutation_process(self):
         try:
+            # NOTE: mutpy is executing given unit tests, checks if they pass and collects statistics
             test_modules, total_duration, number_of_tests = self.load_and_check_tests()
 
             self.notify_passed(test_modules, number_of_tests)
@@ -81,6 +85,9 @@ class MutationController(views.ViewNotifier):
 
             self.score = MutationScore()
 
+            # NOTE: during load all test modules are exluded
+            # NOTE: I think in the general case to_mutate will be None. It is used to select
+            #     a specific member of the module to mutate, but this is controlled by the caller
             for target_module, to_mutate in self.target_loader.load([module for module, *_ in test_modules]):
                 self.mutate_module(target_module, to_mutate, total_duration)
         except KeyboardInterrupt:
@@ -106,10 +113,16 @@ class MutationController(views.ViewNotifier):
 
     @utils.TimeRegister
     def mutate_module(self, target_module, to_mutate, total_duration):
+        # NOTE: Looking into utils, this is not the pure AST tree, but rather it is
+        #    processed before it is getting returned. I can't figure out the exact
+        #    purpose of these transformations, but I think the goal is to prepare the
+        #    tree to be traversed and modified at the same time
         target_ast = self.create_target_ast(target_module)
         coverage_injector, coverage_result = self.inject_coverage(target_ast, target_module)
         if coverage_injector:
             self.score.update_coverage(*coverage_injector.get_result())
+        # NOTE: We assume that FirstOrderMutator.mutate is called, with target_ast being the root node
+        #   of the module, to_mutate is None, coverage does not interest us, target_module is the module name
         for mutations, mutant_ast in self.mutant_generator.mutate(target_ast, to_mutate, coverage_injector,
                                                                   module=target_module):
             mutation_number = self.score.all_mutants + 1
@@ -289,6 +302,8 @@ class FirstOrderMutator:
 
     def mutate(self, target_ast, to_mutate=None, coverage_injector=None, module=None):
         for op in utils.sort_operators(self.operators):
+            # NOTE: Here the operator objects get initialized: op() (AFAIK this is always from the base operator and does nothing)
+            #    also the mutate function of the operator is called right away
             for mutation, mutant in op().mutate(target_ast, to_mutate, self.sampler, coverage_injector, module=module):
                 yield [mutation], mutant
 

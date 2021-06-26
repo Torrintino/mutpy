@@ -46,6 +46,7 @@ class ModulesLoaderException(Exception):
 
 class ModulesLoader:
     def __init__(self, names, path):
+        # NOTE: names is the module(s) to mutate, given via commandline
         self.names = names
         self.path = path or '.'
         self.ensure_in_path(self.path)
@@ -61,6 +62,7 @@ class ModulesLoader:
                 yield module, to_mutate
 
     def load_single(self, name):
+        # NOTE: this is a switch, depending of what kind of file/path got passed
         full_path = self.get_full_path(name)
         if os.path.exists(full_path):
             if self.is_file(full_path):
@@ -140,6 +142,8 @@ class ModulesLoader:
             return result
 
     def load_module(self, name):
+        # NOTE: I think this implementation allows to not just specifiy a module
+        #    from commandline, but also a specific function/class to mutate
         module, remainder_path, last_exception = self._split_by_module_and_remainder(name)
         if not self._module_has_member(module, remainder_path):
             raise ModulesLoaderException(name, last_exception)
@@ -379,8 +383,11 @@ def get_mutation_test_runner_class():
 
 
 class ParentNodeTransformer(ast.NodeTransformer):
+    # NOTE: A node transformer allows changes to the AST while visiting
     def visit(self, node):
         if getattr(node, 'parent', None):
+            # NOTE: In the general case, this branch is not executed, because we
+            #    load a module, which has no parent
             node = copy.copy(node)
             if hasattr(node, 'lineno'):
                 del node.lineno

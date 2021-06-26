@@ -10,6 +10,10 @@ class MutationResign(Exception):
 
 
 class Mutation:
+    # NOTE: They have defined a class for mutations, I think it is for logging purposes
+    #    because the actual change is handled separately. The Mutation basically says:
+    #    for this node I applied this mutation operator. I am sure about the visitor,
+    #    I think it might be there for further processing.
     def __init__(self, operator, node, visitor=None):
         self.operator = operator
         self.node = node
@@ -28,12 +32,16 @@ def copy_node(mutate):
 
 class MutationOperator:
     def mutate(self, node, to_mutate=None, sampler=None, coverage_injector=None, module=None, only_mutation=None):
+        # NOTE: node here is actually the whole AST Tree of our module. So I expect that from here we recursively
+        #    iterate the whole tree for each mutation operator
         self.to_mutate = to_mutate
         self.sampler = sampler
         self.only_mutation = only_mutation
         self.coverage_injector = coverage_injector
         self.module = module
         for new_node in self.visit(node):
+            # NOTE: Here we return a Mutation, but I think the actual change is in new_node which shall replace
+            #    the old one. self.current_node and self.visitor are set during the visit call            
             yield Mutation(operator=self.__class__, node=self.current_node, visitor=self.visitor), new_node
 
     def visit(self, node):
@@ -42,6 +50,8 @@ class MutationOperator:
         if self.only_mutation and self.only_mutation.node != node and self.only_mutation.node not in node.children:
             return
         self.fix_lineno(node)
+        # NOTE: find_visitors should return a set of mutate_* functions from subclasses, not sure though
+        #    why you would call those "visitors"
         visitors = self.find_visitors(node)
         if visitors:
             for visitor in visitors:
@@ -51,6 +61,9 @@ class MutationOperator:
                     if self.only_mutation and \
                             (self.only_mutation.node != node or self.only_mutation.visitor != visitor.__name__):
                         raise MutationResign
+                    # NOTE: If a mutation can be applied to the current node, the altered node will be returned here
+                    #    Otherwise a MutationResign will be caught here and we go into the finally block to further
+                    #    traverse the tree
                     new_node = visitor(node)
                     self.visitor = visitor.__name__
                     self.current_node = node
@@ -67,12 +80,14 @@ class MutationOperator:
                 yield new_node
 
     def generic_visit(self, node):
+        # NOTE: This is called, when the current node could not get mutated
         for field, old_value in ast.iter_fields(node):
             if isinstance(old_value, list):
                 generator = self.generic_visit_list(old_value)
             elif isinstance(old_value, ast.AST):
                 generator = self.generic_visit_real_node(node, field, old_value)
             else:
+                # NOTE: Does this mean, that we skip dictionaries? Or are those of type AST?
                 generator = []
 
             for _ in generator:
@@ -94,6 +109,7 @@ class MutationOperator:
                     old_value[:] = old_values_copy
 
     def generic_visit_real_node(self, node, field, old_value):
+        # NOTE: not sure what this does, I think it might replace a field with its child AST temporarily
         for new_node in self.visit(old_value):
             if new_node is None:
                 delattr(node, field)
@@ -116,6 +132,7 @@ class MutationOperator:
             node.lineno = node.parent.lineno
 
     def fix_node_internals(self, old_node, new_node):
+        # NOTE: This might be relevant for our changes, when we make bigger structural mutations
         if not hasattr(new_node, 'parent'):
             new_node.children = old_node.children
             new_node.parent = old_node.parent
@@ -125,6 +142,7 @@ class MutationOperator:
             new_node.marker = old_node.marker
 
     def find_visitors(self, node):
+        # NOTE: I think this is searching for functions in subclasses, that start with _mutate
         method_prefix = 'mutate_' + node.__class__.__name__
         return self.getattrs_like(method_prefix)
 
