@@ -16,6 +16,7 @@ standard_operators = {
     ArithmeticOperatorDeletion,
     ArithmeticOperatorReplacement,
     AssignmentOperatorReplacement,
+    BranchDeletion,
     BreakContinueReplacement,
     ConditionalOperatorDeletion,
     ConditionalOperatorInsertion,

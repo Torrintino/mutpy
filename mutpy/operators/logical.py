@@ -29,6 +29,26 @@ class ConditionalOperatorInsertion(MutationOperator):
         return ast.NotIn()
 
 
+class BranchDeletion(MutationOperator):
+
+    def mutate_If(self, node):
+        level = 0
+        parent_node = None
+        orelse = node
+        while hasattr(orelse, "orelse"):
+            level += 1
+            if level == 2:
+                parent = node
+            elif level > 2:
+                parent = node.orelse[0]
+                orelse = orelse.orelse[0]
+        if parent:
+            parent.orelse = [orelse]
+        else:
+            raise MutationResign()
+        return node
+
+
 class LogicalConnectorReplacement(MutationOperator):
     def mutate_And(self, node):
         return ast.Or()
