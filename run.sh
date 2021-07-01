@@ -1,4 +1,4 @@
-#Only for local test runs. Please define env variables accordingly
+#Only for local test runs
 echo ""
 echo ""
 echo ""
