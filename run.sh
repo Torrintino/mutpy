@@ -1,11 +1,11 @@
 #Only for local test runs
-echo ""
-echo ""
-echo ""
+echo "*"
+echo "*"
+echo "*"
 echo "This is a test run"
-echo ""
-echo ""
-echo ""
+echo "*"
+echo "*"
+echo "*"
 sleep 1
 
 ./shut-down.sh
