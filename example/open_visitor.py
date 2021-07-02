@@ -7,10 +7,11 @@ def main():
     exec(compile(tree, filename="<ast>", mode="exec"))
 
     analyzer = Analyzer()
-    analyzer.visit(tree)
+    tree = analyzer.visit(tree)
+    exec(compile(tree, filename="<ast>", mode="exec"))
 
 
-class Analyzer(ast.NodeVisitor):
+class Analyzer(ast.NodeTransformer):
 
     def visit_Call(self, node):
         if isinstance(node.func, ast.Name):
@@ -19,12 +20,19 @@ class Analyzer(ast.NodeVisitor):
             if len(node.args) >= 2:
                 mode = node.args[1]
                 if isinstance(mode, ast.Constant):
-                    if mode.value == "w":
-                        mode.value = "r"
-                    elif mode.value == "r":
-                        mode.value = "w"
+                    self.modify_mode(mode)
             elif node.keywords:
-                pass
+                for kw in node.keywords:
+                    if kw.arg == "mode":
+                        self.modify_mode(kw.value)
+        return node
+
+    def modify_mode(self, mode):
+        if mode.value == "w":
+            mode.value = "r"
+        elif mode.value == "r":
+            mode.value = "w"
+                        
 
 
 if __name__ == "__main__":
