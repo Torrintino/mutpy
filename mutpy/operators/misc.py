@@ -85,6 +85,35 @@ class OpenModeManipulation(MutationOperator):
         else:
             mode.value.append ("b")
 
+    @classmethod
+    def name(cls):
+        return 'OMR'
+
+class OpenEncodingReplacement:
+    
+    def mutate_Call(self, node):
+        mutated = False
+        
+        if isinstance(node.func, ast.Name):
+            if node.func.id != "open":
+                return MutationResign()
+
+            if node.keywords:
+                for kw in node.keywords:
+                    if kw.arg == "encoding":
+                        if kw.value.value == "windows-1252":
+                            kw.value.value = "utf-8"
+                        else:
+                            kw.value.value = "windows-1252"
+                        mutated = True
+        if not mutated:
+            return MutationResign()
+        return node
+
+    @classmethod
+    def name(cls):
+        return 'OER'
+
 class SliceIndexRemove(MutationOperator):
     def mutate_Slice_remove_lower(self, node):
         if not node.lower:
