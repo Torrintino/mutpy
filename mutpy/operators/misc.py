@@ -49,6 +49,42 @@ class ConstantReplacement(MutationOperator):
         return 'CRP'
 
 
+class OpenModeManipulation(MutationOperator):
+
+    def mutate_Call(self, node):
+        mutated = False
+        
+        if isinstance(node.func, ast.Name):
+            if node.func.id != "open":
+                return MutationResign()
+            
+            if len(node.args) >= 2:
+                mode = node.args[1]
+                if isinstance(mode, ast.Constant):
+                    self.modify_mode(mode)
+                    mutated = True
+            elif node.keywords:
+                for kw in node.keywords:
+                    if kw.arg == "mode":
+                        self.modify_mode(kw.value)
+                        mutated = True
+
+        if not mutated:
+            return MutationResign()
+        return node
+
+    def modify_mode(self, mode):
+        if mode.value == "w":
+            mode.value = "r"
+        elif mode.value == "r":
+            mode.value = "w"
+        elif mode.value == "x":
+            mode.value = "r"
+        elif "b" in mode.value:
+            mode.value.replace("b", "t")
+        else:
+            mode.value.append ("b")
+
 class SliceIndexRemove(MutationOperator):
     def mutate_Slice_remove_lower(self, node):
         if not node.lower:
