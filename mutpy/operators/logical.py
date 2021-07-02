@@ -31,6 +31,7 @@ class ConditionalOperatorInsertion(MutationOperator):
 
 class BranchDeletion(MutationOperator):
 
+    @copy_node
     def mutate_If(self, node):
         level = 0
         parent_node = None

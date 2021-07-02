@@ -2,7 +2,7 @@ import ast
 
 from mutpy import utils
 from mutpy.operators.arithmetic import AbstractArithmeticOperatorReplacement
-from mutpy.operators.base import MutationOperator, MutationResign
+from mutpy.operators.base import MutationOperator, MutationResign, copy_node
 
 
 class AssignmentOperatorReplacement(AbstractArithmeticOperatorReplacement):
@@ -51,6 +51,7 @@ class ConstantReplacement(MutationOperator):
 
 class OpenModeManipulation(MutationOperator):
 
+    @copy_node
     def mutate_Call(self, node):
         mutated = False
         
@@ -90,7 +91,8 @@ class OpenModeManipulation(MutationOperator):
         return 'OMR'
 
 class OpenEncodingReplacement:
-    
+
+    @copy_node    
     def mutate_Call(self, node):
         mutated = False
         
