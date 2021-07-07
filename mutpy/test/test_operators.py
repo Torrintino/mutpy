@@ -59,6 +59,8 @@ class OperatorTestCase(unittest.TestCase):
             module = utils.create_module(original_ast)
         for mutation, mutant in operator.mutate(original_ast, coverage_injector=coverage_injector, module=module):
             mutant_code = codegen.remove_extra_lines(codegen.to_source(mutant))
+            # if self.__class__.__name__ == "OpenEncodingTest":
+            #     print("Mutated: " + mutant_code)
             msg = '\n\nMutant:\n\n' + mutant_code + '\n\nNot found in:'
             for other_mutant in mutants:
                 msg += '\n\n----------\n\n' + other_mutant
@@ -236,6 +238,7 @@ class BranchDeletionTest(OperatorTestCase):
             + "elif num == 5:" + EOL
             + "    print('Match')")
 
+
 class OpenModeTest(OperatorTestCase):
 
     @classmethod
@@ -252,9 +255,9 @@ class OpenModeTest(OperatorTestCase):
     def test_open_mode_replacement_read_byte(self):
         self.assert_mutation(
             "with open('test.txt', 'rb') as f:" + EOL
-            + "    f.write('test')",
+            + "    x = f.read()",
             ["with open('test.txt', 'rt') as f:" + EOL
-             + "    f.write('test')"])
+             + "    x = f.read()"])
         
     def test_open_mode_replacement_append_byte(self):
         self.assert_mutation(
@@ -266,9 +269,9 @@ class OpenModeTest(OperatorTestCase):
     def test_open_mode_replacement_read(self):
         self.assert_mutation(
             "with open('test.txt', 'r') as f:" + EOL
-            + "    f.write('test')",
+            + "    x = f.read()",
             ["with open('test.txt', 'w') as f:" + EOL
-             + "    f.write('test')"])
+             + "    x = f.read()"])
         
     def test_open_mode_replacement_update(self):
         self.assert_mutation(
@@ -277,6 +280,41 @@ class OpenModeTest(OperatorTestCase):
             ["with open('test.txt', 'r') as f:" + EOL
              + "    f.write('test')"])
 
+
+class OpenEncodingTest(OperatorTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.op = operators.OpenEncodingReplacement()
+
+    def test_open_enc_replacement_windows(self):
+        self.assert_mutation(
+            "with open('test.txt', mode='w', encoding='windows-1252') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', mode='w', encoding='utf-8') as f:" + EOL
+             + "    f.write('test')"])
+        
+    def test_open_enc_replacement_utf(self):
+        self.assert_mutation(
+            "with open('test.txt', mode='w', encoding='utf-8') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', mode='w', encoding='windows-1252') as f:" + EOL
+             + "    f.write('test')"])
+        
+    def test_open_enc_replacement_no_param(self):
+        self.assert_mutation(
+            "with open('test.txt', mode='w') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', mode='w', encoding='windows-1252') as f:" + EOL
+             + "    f.write('test')"])
+        
+    def test_open_enc_replacement_no_keywords(self):
+        self.assert_mutation(
+            "with open('test.txt') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', encoding='windows-1252') as f:" + EOL
+             + "    f.write('test')"])
+        
 
 class ArithmeticOperatorDeletionTest(OperatorTestCase):
 

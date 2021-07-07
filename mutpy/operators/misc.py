@@ -90,7 +90,7 @@ class OpenModeReplacement(MutationOperator):
     def name(cls):
         return 'OMR'
 
-class OpenEncodingReplacement:
+class OpenEncodingReplacement(MutationOperator):
 
     @copy_node    
     def mutate_Call(self, node):
@@ -108,6 +108,14 @@ class OpenEncodingReplacement:
                         else:
                             kw.value.value = "windows-1252"
                         mutated = True
+                if not mutated:
+                    node.keywords.append(ast.keyword(
+                        arg="encoding", value=ast.Constant("windows-1252")))
+                    mutated = True
+            else:
+                node.keywords = [
+                    ast.keyword(arg="encoding", value=ast.Constant("windows-1252"))]
+                mutated = True
         if not mutated:
             raise MutationResign()
         return node
