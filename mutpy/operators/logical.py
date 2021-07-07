@@ -1,6 +1,6 @@
 import ast
 
-from mutpy.operators.base import MutationOperator, AbstractUnaryOperatorDeletion, copy_node
+from mutpy.operators.base import MutationOperator, MutationResign, AbstractUnaryOperatorDeletion, copy_node
 
 
 class ConditionalOperatorDeletion(AbstractUnaryOperatorDeletion):
@@ -34,7 +34,7 @@ class BranchDeletion(MutationOperator):
     @copy_node
     def mutate_If(self, node):
         level = 0
-        parent_node = None
+        parent = None
         orelse = node
         while hasattr(orelse, "orelse"):
             level += 1
@@ -42,7 +42,7 @@ class BranchDeletion(MutationOperator):
                 parent = node
             elif level > 2:
                 parent = node.orelse[0]
-                orelse = orelse.orelse[0]
+            orelse = orelse.orelse[0]
         if parent:
             parent.orelse = [orelse]
         else:

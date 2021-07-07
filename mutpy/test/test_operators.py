@@ -56,14 +56,14 @@ class OperatorTestCase(unittest.TestCase):
         module = None
         if with_exec:
             module = utils.create_module(original_ast)
-        for mutation, mutatnt in operator.mutate(original_ast, coverage_injector=coverage_injector, module=module):
-            mutant_code = codegen.remove_extra_lines(codegen.to_source(mutatnt))
+        for mutation, mutant in operator.mutate(original_ast, coverage_injector=coverage_injector, module=module):
+            mutant_code = codegen.remove_extra_lines(codegen.to_source(mutant))
             msg = '\n\nMutant:\n\n' + mutant_code + '\n\nNot found in:'
             for other_mutant in mutants:
                 msg += '\n\n----------\n\n' + other_mutant
             self.assertIn(mutant_code, mutants, msg)
             mutants.remove(mutant_code)
-            self.assert_location(mutatnt)
+            self.assert_location(mutant)
             if lines is not None:
                 if not hasattr(mutation.node, 'lineno'):
                     self.assert_mutation_lineo(mutation.node.parent.lineno, lines)
@@ -197,6 +197,27 @@ class AssignmentOperatorReplacementTest(OperatorTestCase):
 
     def test_not_mutate_normal_use(self):
         self.assert_mutation('x + y', [])
+
+class BranchDeletionTest(OperatorTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.op = operators.BranchDeletion()
+
+    def test_branch_deletion(self):
+        self.assert_mutation(
+            "num = 5" + EOL
+            + "if num < 5:" + EOL
+            + "    print('Higher')" + EOL
+            + "elif num == 5:" + EOL
+            + "    print('Match')" + EOL
+            + "else:" + EOL
+            + "    print('Lower')",
+            ["num = 5" + EOL
+             + "if num < 5:" + EOL
+             + "    print('Higher')" + EOL
+             + "else:" + EOL
+             + "    print('Lower')"])
 
 
 class ArithmeticOperatorDeletionTest(OperatorTestCase):
