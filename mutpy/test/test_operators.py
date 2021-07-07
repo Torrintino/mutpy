@@ -242,27 +242,35 @@ class OpenModeTest(OperatorTestCase):
     def setUpClass(cls):
         cls.op = operators.OpenModeReplacement()
 
-    def test_branch_deletion(self):
+    def test_open_mode_replacement_write(self):
         self.assert_mutation(
             "with open('test.txt', 'w') as f:" + EOL
             + "    f.write('test')",
             ["with open('test.txt', 'r') as f:" + EOL
              + "    f.write('test')"])
+        
+    def test_open_mode_replacement_read_byte(self):
         self.assert_mutation(
             "with open('test.txt', 'rb') as f:" + EOL
             + "    f.write('test')",
             ["with open('test.txt', 'rt') as f:" + EOL
              + "    f.write('test')"])
+        
+    def test_open_mode_replacement_append_byte(self):
         self.assert_mutation(
             "with open('test.txt', 'a') as f:" + EOL
             + "    f.write('test')",
             ["with open('test.txt', 'ab') as f:" + EOL
              + "    f.write('test')"])
+        
+    def test_open_mode_replacement_read(self):
         self.assert_mutation(
             "with open('test.txt', 'r') as f:" + EOL
             + "    f.write('test')",
             ["with open('test.txt', 'w') as f:" + EOL
              + "    f.write('test')"])
+        
+    def test_open_mode_replacement_update(self):
         self.assert_mutation(
             "with open('test.txt', 'x') as f:" + EOL
             + "    f.write('test')",
