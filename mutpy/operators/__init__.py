@@ -28,6 +28,8 @@ standard_operators = {
     LogicalConnectorReplacement,
     LogicalOperatorDeletion,
     LogicalOperatorReplacement,
+    OpenEncodingReplacement,
+    OpenModeReplacement,
     OverriddenMethodCallingPositionChange,
     OverridingMethodDeletion,
     RelationalOperatorReplacement,

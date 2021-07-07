@@ -49,7 +49,7 @@ class ConstantReplacement(MutationOperator):
         return 'CRP'
 
 
-class OpenModeManipulation(MutationOperator):
+class OpenModeReplacement(MutationOperator):
 
     @copy_node
     def mutate_Call(self, node):
@@ -57,7 +57,7 @@ class OpenModeManipulation(MutationOperator):
         
         if isinstance(node.func, ast.Name):
             if node.func.id != "open":
-                return MutationResign()
+                raise MutationResign()
             
             if len(node.args) >= 2:
                 mode = node.args[1]
@@ -71,7 +71,7 @@ class OpenModeManipulation(MutationOperator):
                         mutated = True
 
         if not mutated:
-            return MutationResign()
+            raise MutationResign()
         return node
 
     def modify_mode(self, mode):
@@ -82,9 +82,9 @@ class OpenModeManipulation(MutationOperator):
         elif mode.value == "x":
             mode.value = "r"
         elif "b" in mode.value:
-            mode.value.replace("b", "t")
+            mode.value = mode.value.replace("b", "t")
         else:
-            mode.value.append ("b")
+            mode.value += "b"
 
     @classmethod
     def name(cls):
@@ -98,7 +98,7 @@ class OpenEncodingReplacement:
         
         if isinstance(node.func, ast.Name):
             if node.func.id != "open":
-                return MutationResign()
+                raise MutationResign()
 
             if node.keywords:
                 for kw in node.keywords:
@@ -109,7 +109,7 @@ class OpenEncodingReplacement:
                             kw.value.value = "windows-1252"
                         mutated = True
         if not mutated:
-            return MutationResign()
+            raise MutationResign()
         return node
 
     @classmethod

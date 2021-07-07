@@ -1,4 +1,5 @@
 import ast
+import os
 import unittest
 
 from mutpy import operators, codegen, coverage, utils
@@ -239,10 +240,34 @@ class OpenModeTest(OperatorTestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.op = operators.BranchDeletion()
+        cls.op = operators.OpenModeReplacement()
 
     def test_branch_deletion(self):
-        pass
+        self.assert_mutation(
+            "with open('test.txt', 'w') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', 'r') as f:" + EOL
+             + "    f.write('test')"])
+        self.assert_mutation(
+            "with open('test.txt', 'rb') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', 'rt') as f:" + EOL
+             + "    f.write('test')"])
+        self.assert_mutation(
+            "with open('test.txt', 'a') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', 'ab') as f:" + EOL
+             + "    f.write('test')"])
+        self.assert_mutation(
+            "with open('test.txt', 'r') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', 'w') as f:" + EOL
+             + "    f.write('test')"])
+        self.assert_mutation(
+            "with open('test.txt', 'x') as f:" + EOL
+            + "    f.write('test')",
+            ["with open('test.txt', 'r') as f:" + EOL
+             + "    f.write('test')"])
 
 
 class ArithmeticOperatorDeletionTest(OperatorTestCase):
