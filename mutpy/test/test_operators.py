@@ -219,6 +219,31 @@ class BranchDeletionTest(OperatorTestCase):
              + "else:" + EOL
              + "    print('Lower')"])
 
+    def test_not_mutate_else(self):
+        self.assert_no_mutation(
+            "num = 5" + EOL
+            + "if num < 5:" + EOL
+            + "    print('Higher')" + EOL
+            + "else:" + EOL
+            + "    print('Lower')")
+
+    def test_not_mutate_elif(self):
+        self.assert_no_mutation(
+            "num = 5" + EOL
+            + "if num < 5:" + EOL
+            + "    print('Higher')" + EOL
+            + "elif num == 5:" + EOL
+            + "    print('Match')")
+
+class OpenModeTest(OperatorTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.op = operators.BranchDeletion()
+
+    def test_branch_deletion(self):
+        pass
+
 
 class ArithmeticOperatorDeletionTest(OperatorTestCase):
 

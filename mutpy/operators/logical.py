@@ -37,6 +37,8 @@ class BranchDeletion(MutationOperator):
         parent = None
         orelse = node
         while hasattr(orelse, "orelse"):
+            if not orelse.orelse:
+                break
             level += 1
             if level == 2:
                 parent = node
