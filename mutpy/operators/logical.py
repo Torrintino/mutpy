@@ -29,7 +29,11 @@ class ConditionalOperatorInsertion(MutationOperator):
         return ast.NotIn()
 
 
-class BranchDeletion(MutationOperator):
+class ElifBranchDeletion(MutationOperator):
+
+    @classmethod
+    def name(cls):
+        return 'EBD'
 
     @copy_node
     def mutate_If(self, node):

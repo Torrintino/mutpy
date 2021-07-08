@@ -201,11 +201,11 @@ class AssignmentOperatorReplacementTest(OperatorTestCase):
     def test_not_mutate_normal_use(self):
         self.assert_mutation('x + y', [])
 
-class BranchDeletionTest(OperatorTestCase):
+class ElifBranchDeletionTest(OperatorTestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.op = operators.BranchDeletion()
+        cls.op = operators.ElifBranchDeletion()
 
     def test_branch_deletion(self):
         self.assert_mutation(
