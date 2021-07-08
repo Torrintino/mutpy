@@ -314,7 +314,36 @@ class OpenEncodingTest(OperatorTestCase):
             + "    f.write('test')",
             ["with open('test.txt', encoding='windows-1252') as f:" + EOL
              + "    f.write('test')"])
-        
+
+
+class RangeStepIncrementTest(OperatorTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.op = operators.RangeStepIncrement()
+
+    def test_increment_range(self):
+        self.assert_mutation(
+            "for i in range(0, 10, step=1):" + EOL
+            + "    print(i)",
+            ["for i in range(0, 10, step=2):" + EOL
+             + "    print(i)"])
+
+    def test_set_range(self):
+        self.assert_mutation(
+            "for i in range(0, stop=10):" + EOL
+            + "    print(i)",
+            ["for i in range(0, stop=10, step=2):" + EOL
+             + "    print(i)"])
+
+    def test_set_range_no_kw(self):
+        self.assert_mutation(
+            "for i in range(0, 10):" + EOL
+            + "    print(i)",
+            ["for i in range(0, 10, step=2):" + EOL
+             + "    print(i)"])
+
+
 
 class ArithmeticOperatorDeletionTest(OperatorTestCase):
 

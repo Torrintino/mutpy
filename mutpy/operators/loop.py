@@ -1,6 +1,6 @@
 import ast
 
-from mutpy.operators import copy_node, MutationOperator
+from mutpy.operators import copy_node, MutationOperator, MutationResign
 
 
 class OneIterationLoop(MutationOperator):
@@ -43,3 +43,33 @@ class ZeroIterationLoop(MutationOperator):
     @copy_node
     def mutate_While(self, node):
         return self.zero_iteration(node)
+
+
+class RangeStepIncrement(MutationOperator):
+
+    @classmethod
+    def name(cls):
+        return 'RSI'
+
+    @copy_node
+    def mutate_Call(self, node):
+        mutated = False
+        if isinstance(node.func, ast.Name):
+            if node.func.id != "range":
+                raise MutationResign()
+        else:
+            raise MutationResign()
+
+        if node.keywords:
+            for kw in node.keywords:
+                if kw.arg == "step":
+                    kw.value.value += 1
+                    mutated = True
+            if not mutated:
+                node.keywords.append(
+                    ast.keyword(arg="step", value=ast.Constant(2)))
+                mutated = True
+        if not mutated:
+            node.keywords = [
+                ast.keyword(arg="step", value=ast.Constant(2))]
+        return node

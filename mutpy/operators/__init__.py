@@ -32,6 +32,7 @@ standard_operators = {
     OpenModeReplacement,
     OverriddenMethodCallingPositionChange,
     OverridingMethodDeletion,
+    RangeStepIncrement,
     RelationalOperatorReplacement,
     SliceIndexRemove,
     SuperCallingDeletion,
