@@ -117,8 +117,7 @@ class GenericLoopSkip(MutationOperator):
     def inc_lineno(self, body):
         for node in body:
             if hasattr(node, "body"):
-                for node in node.body:
-                    node.body = self.inc_lineno(node.body)
+                node.body = self.inc_lineno(node.body)
             node.lineno += 8
         return body
 
