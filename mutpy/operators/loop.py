@@ -73,3 +73,64 @@ class RangeStepIncrement(MutationOperator):
             node.keywords = [
                 ast.keyword(arg="step", value=ast.Constant(2))]
         return node
+
+
+class GenericLoopSkip(MutationOperator):
+
+    @classmethod
+    def name(cls):
+        return 'GLS'
+
+    def construct_ast(self, offset):
+        return ast.If(
+            test=ast.Compare(
+                left=ast.Constant("unique_mutation_var"), ops=[ast.In()],
+                comparators=[
+                    ast.Call(func=ast.Name("locals"), args=[], keywords=[])
+                ]),
+            body=[
+                ast.If(
+                    test=ast.Name("unique_mutation_var"),
+                    body=[
+                        ast.Assign(
+                            targets=[ast.Name("unique_mutation_var")],
+                            value=ast.Constant(0),
+                            lineno=offset+3),
+                        ast.Continue(lineno=offset+4),
+                    ],
+                    orelse=[
+                        ast.Assign(
+                            targets=[ast.Name("unique_mutation_var")],
+                            value=ast.Constant(1),
+                            lineno=offset+6)
+                    ],
+                    lineno=offset+2)
+            ],
+            orelse=[
+                ast.Assign(
+                    targets=[ast.Name("unique_mutation_var")],
+                    value=ast.Constant(1),
+                    lineno=offset+8)
+            ],
+            lineno=offset+1)
+
+    def inc_lineno(self, body):
+        for node in body:
+            if hasattr(node, "body"):
+                for node in node.body:
+                    node.body = self.inc_lineno(node.body)
+            node.lineno += 8
+        return body
+
+    def prepend_loop(self, node):
+        if_ast = self.construct_ast(node.lineno)
+        node.body = [if_ast] + self.inc_lineno(node.body)
+        return node
+
+    @copy_node
+    def mutate_For(self, node):
+        return self.prepend_loop(node)
+
+    @copy_node
+    def mutate_While(self, node):
+        return self.prepend_loop(node)

@@ -24,6 +24,7 @@ standard_operators = {
     ElifBranchDeletion,
     ExceptionHandlerDeletion,
     ExceptionSwallowing,
+    GenericLoopSkip,
     HidingVariableDeletion,
     LogicalConnectorReplacement,
     LogicalOperatorDeletion,

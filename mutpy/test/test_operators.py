@@ -344,6 +344,42 @@ class RangeStepIncrementTest(OperatorTestCase):
              + "    print(i)"])
 
 
+class GenericLoopSkipTest(OperatorTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.op = operators.GenericLoopSkip()
+
+    def test_skip_for(self):
+        self.assert_mutation(
+            "for i in range(0, 10):" + EOL
+            + "    print(i)",
+            ["for i in range(0, 10):" + EOL
+             + "    if 'unique_mutation_var' in locals():" + EOL
+             + "        if unique_mutation_var:" + EOL
+             + "            unique_mutation_var = 0" + EOL
+             + "            continue" + EOL
+             + "        else:" + EOL
+             + "            unique_mutation_var = 1" + EOL
+             + "    else:" + EOL
+             + "        unique_mutation_var = 1" + EOL
+             + "    print(i)"])
+
+    def test_skip_while(self):
+        self.assert_mutation(
+            "while True:" + EOL
+            + "    print('Test')",
+            ["while True:" + EOL
+             + "    if 'unique_mutation_var' in locals():" + EOL
+             + "        if unique_mutation_var:" + EOL
+             + "            unique_mutation_var = 0" + EOL
+             + "            continue" + EOL
+             + "        else:" + EOL
+             + "            unique_mutation_var = 1" + EOL
+             + "    else:" + EOL
+             + "        unique_mutation_var = 1" + EOL
+             + "    print('Test')"])
+
 
 class ArithmeticOperatorDeletionTest(OperatorTestCase):
 
